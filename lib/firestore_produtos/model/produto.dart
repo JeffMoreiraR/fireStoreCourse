@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 class Produto {
   String id;
   String name;
@@ -28,5 +29,10 @@ class Produto {
       "price": price,
       "amount": amount,
     };
+  }
+
+  @override
+  String toString() {
+    return 'Produto(id: $id, name: $name, price: $price, amount: $amount, isComprado: $isComprado)';
   }
 }

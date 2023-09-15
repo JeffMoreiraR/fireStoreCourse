@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_alura/firestore_produtos/helpers/enum_order.dart';
+import 'package:firebase_alura/firestore_produtos/services/produto_services.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../firestore/models/listin.dart';
@@ -20,7 +21,7 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   List<Produto> listaProdutosPlanejados = [];
   List<Produto> listaProdutosPegos = [];
 
-  FirebaseFirestore fireStore = FirebaseFirestore.instance;
+  ProductServices producServices = ProductServices();
 
   OrdemProduto ordem = OrdemProduto.name;
   bool isDecrescente = false;
@@ -281,12 +282,10 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
                       }
 
                       // Salvar no Firestore
-                      fireStore
-                          .collection('listins')
-                          .doc(widget.listin.id)
-                          .collection('produtos')
-                          .doc(produto.id)
-                          .set(produto.toMap());
+                      producServices.addProduct(
+                        listinId: widget.listin.id,
+                        prdouct: produto,
+                      );
 
                       // Fechar o Modal
                       Navigator.pop(context);
@@ -303,21 +302,12 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   }
 
   refresh({QuerySnapshot<Map<String, dynamic>>? snapshot}) async {
-    List<Produto> temp = [];
-    snapshot ??= await fireStore
-        .collection('listins')
-        .doc(widget.listin.id)
-        .collection('produtos')
-        .orderBy(ordem.name, descending: isDecrescente)
-        .get();
-
-    for (var doc in snapshot.docs) {
-      Produto produto = Produto.fromMap(doc.data());
-      if (produto.price != null) {}
-      temp.add(produto);
-    }
-
-    filtrarProdutos(temp);
+    List<Produto> products = await producServices.refresh(
+      listinId: widget.listin.id,
+      order: ordem,
+      isDecrescente: isDecrescente,
+    );
+    filtrarProdutos(products);
   }
 
   filtrarProdutos(List<Produto> listaProdutos) {
@@ -340,62 +330,27 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   Future<void> alternarComprado(Produto produto) async {
     produto.isComprado = !produto.isComprado;
 
-    await fireStore
-        .collection('listins')
-        .doc(widget.listin.id)
-        .collection('produtos')
-        .doc(produto.id)
-        .update({'isComprado': produto.isComprado}).then((value) {});
+    await producServices.changeProduct(
+      listinId: widget.listin.id,
+      product: produto,
+    );
   }
 
   setupListeners() async {
-    listener = fireStore
-        .collection('listins')
-        .doc(widget.listin.id)
-        .collection('produtos')
-        .orderBy(ordem.name, descending: isDecrescente)
-        .snapshots()
-        .listen((snapshot) {
-      if (snapshot.docChanges.length == 1) {
-        for (var change in snapshot.docChanges) {
-          Produto product = Produto.fromMap(change.doc.data()!);
-          switch (change.type) {
-            case DocumentChangeType.added:
-              showSnackBar(
-                text: 'Produto adicionado: ',
-                productName: product.name,
-                color: Colors.green,
-              );
-              break;
-            case DocumentChangeType.modified:
-              showSnackBar(
-                text: 'Produto alterado: ',
-                productName: product.name,
-                color: Colors.orange,
-              );
-              break;
-            case DocumentChangeType.removed:
-              showSnackBar(
-                text: 'Produto removido: ',
-                productName: product.name,
-                color: Colors.red,
-              );
-              break;
-          }
-        }
-      }
-
-      refresh(snapshot: snapshot);
-    });
+    listener = await producServices.setupListen(
+      refresh: refresh,
+      listinId: widget.listin.id,
+      order: ordem,
+      isDecrescente: isDecrescente,
+      showSnackBar: showSnackBar,
+    );
   }
 
   removerProduto(Produto produto) async {
-    await fireStore
-        .collection('listins')
-        .doc(widget.listin.id)
-        .collection('produtos')
-        .doc(produto.id)
-        .delete();
+    await producServices.deleteProduct(
+      listinId: widget.listin.id,
+      product: produto,
+    );
   }
 
   double calcularPrecoPegos() {
