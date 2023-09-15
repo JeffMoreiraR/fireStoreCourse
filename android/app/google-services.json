@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "41317341654",
+    "project_id": "flutter-firebase-alura2",
+    "storage_bucket": "flutter-firebase-alura2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:41317341654:android:7a31c6c7faafc9bb722c77",
+        "android_client_info": {
+          "package_name": "com.example.firebase_alura"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "41317341654-8mqoaav48dq8dt7m5ql50iqvqc487m2h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3MkcQ_-7By2hWpFgWpXYdAJ506KSQLks"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "41317341654-8mqoaav48dq8dt7m5ql50iqvqc487m2h.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "41317341654-hdmoho5vog0recmjbhfu84u1dki8sk3d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.firebaseAlura"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
