@@ -1,5 +1,5 @@
 import 'package:firebase_alura/_core/my_colors.dart';
-import 'package:firebase_alura/firestore/presentation/home_screen.dart';
+import 'package:firebase_alura/authentication/presentation/auth_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const HomeScreen(),
+      home: const AuthScreen(),
     );
   }
 }
