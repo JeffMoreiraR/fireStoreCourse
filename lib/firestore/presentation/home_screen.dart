@@ -1,11 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_alura/authentication/component/show_confirmation_dialog.dart';
+import 'package:firebase_alura/authentication/services/auth_service.dart';
+import 'package:firebase_alura/firestore/services/listin_service.dart';
 import 'package:firebase_alura/firestore_produtos/presentation/produto_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/listin.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final User user;
+  const HomeScreen({
+    super.key,
+    required this.user,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -13,7 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Listin> listListins = [];
-  FirebaseFirestore fireStore = FirebaseFirestore.instance;
+  final ListinServicie _listinServicie = ListinServicie();
 
   @override
   void initState() {
@@ -24,12 +31,40 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            UserAccountsDrawerHeader(
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.white,
+              ),
+              accountName: Text(widget.user.displayName ?? ''),
+              accountEmail: Text('${widget.user.email}'),
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.delete,
+                color: Colors.red,
+              ),
+              title: const Text('Excluir Conta'),
+              onTap: () {
+                showConfirmationPasswordDialog(email: '', context: context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Sair'),
+              onTap: () {
+                AuthService().logout();
+              },
+            ),
+          ],
+        ),
+      ),
       appBar: AppBar(
         title: const Text(
           "Listin - Feira Colaborativa",
-          style: TextStyle(
-              // color: Colors.white,
-              ),
+          style: TextStyle(),
         ),
         // backgroundColor: Colors.deepPurpleAccent,
       ),
@@ -155,11 +190,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           id: model != null ? model.id : const Uuid().v1(),
                           name: nameController.text,
                         );
-                        fireStore
-                            .collection('listins')
-                            .doc(listin.id)
-                            .set(listin.toMap());
+
+                        _listinServicie.newListin(listin: listin);
                         refresh();
+
                         Navigator.pop(context);
                       },
                       child: Text(confirmationButton)),
@@ -173,21 +207,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   refresh() async {
-    List<Listin> temp = [];
-    QuerySnapshot<Map<String, dynamic>> snapshot =
-        await fireStore.collection('listins').get();
-
-    for (var doc in snapshot.docs) {
-      temp.add(Listin.fromMap(doc.data()));
-    }
-
+    List<Listin> temp = await _listinServicie.refresh();
     setState(() {
       listListins = temp;
     });
   }
 
   void remove(Listin model) {
-    fireStore.collection('listins').doc(model.id).delete();
+    _listinServicie.removeListin(model: model);
     refresh();
   }
 }

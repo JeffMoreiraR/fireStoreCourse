@@ -1,4 +1,6 @@
 import 'package:firebase_alura/_core/my_colors.dart';
+import 'package:firebase_alura/authentication/component/show_snackbar.dart';
+import 'package:firebase_alura/authentication/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -17,6 +19,8 @@ class _AuthScreenState extends State<AuthScreen> {
   bool isEntrando = true;
 
   final _formKey = GlobalKey<FormState>();
+
+  AuthService authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +92,18 @@ class _AuthScreenState extends State<AuthScreen> {
                         return null;
                       },
                     ),
+                    Visibility(
+                      visible: isEntrando,
+                      replacement: const SizedBox.shrink(),
+                      child: TextButton(
+                        onPressed: () {
+                          forgotPassword();
+                        },
+                        child: const Text('Esqueci minha senha.'),
+                      ),
+                    ),
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
                       child: Visibility(
                           visible: !isEntrando,
                           child: Column(
@@ -176,11 +190,80 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   _entrarUsuario({required String email, required String senha}) {
-    print("Entrar usuário $email, $senha");
+    authService.login(email: email, password: senha).then((error) {
+      if (error != null) {
+        showSnackBar(context: context, message: error);
+      } else {}
+    });
   }
 
-  _criarUsuario(
-      {required String email, required String senha, required String nome}) {
-    print("Criar usuário $email, $senha, $nome");
+  _criarUsuario({
+    required String email,
+    required String senha,
+    required String nome,
+  }) {
+    authService
+        .registerUser(name: nome, email: email, password: senha)
+        .then((error) {
+      if (error != null) {
+        showSnackBar(context: context, message: error);
+      } else {}
+    });
+  }
+
+  void forgotPassword() {
+    String email = _emailController.text;
+    showDialog(
+        context: context,
+        builder: (context) {
+          TextEditingController forgotPasswordController =
+              TextEditingController(text: email);
+          return AlertDialog(
+            title: const Center(
+                child: Text('Confirme o e-mail para redefinição de senha')),
+            content: TextFormField(
+              controller: forgotPasswordController,
+              decoration: const InputDecoration(
+                label: Text('Confirme o e-mail'),
+              ),
+            ),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(24),
+              ),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 100),
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancelar'),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  authService
+                      .forgotPassword(email: forgotPasswordController.text)
+                      .then((error) {
+                    if (error == null) {
+                      showSnackBar(
+                        context: context,
+                        message:
+                            'Verifique o e-mail informado, você irá receber um link de redefinição de senha.',
+                        isError: false,
+                      );
+                    } else {
+                      showSnackBar(context: context, message: error);
+                    }
+                    Navigator.of(context).pop();
+                  });
+                },
+                child: const Text('Redefinir Senha'),
+              ),
+            ],
+          );
+        });
   }
 }

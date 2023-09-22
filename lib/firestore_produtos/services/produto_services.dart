@@ -3,16 +3,18 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_alura/firestore_produtos/helpers/enum_order.dart';
 import 'package:firebase_alura/firestore_produtos/model/produto.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ProductServices {
+  final String uid = FirebaseAuth.instance.currentUser!.uid;
   FirebaseFirestore fireStore = FirebaseFirestore.instance;
   addProduct({
     required String listinId,
     required Produto prdouct,
   }) async {
     await fireStore
-        .collection('listins')
+        .collection(uid)
         .doc(listinId)
         .collection('produtos')
         .doc(prdouct.id)
@@ -26,7 +28,7 @@ class ProductServices {
   }) async {
     List<Produto> temp = [];
     QuerySnapshot<Map<String, dynamic>> snapshot = await fireStore
-        .collection('listins')
+        .collection(uid)
         .doc(listinId)
         .collection('produtos')
         .orderBy(order.name, descending: isDecrescente)
@@ -45,7 +47,7 @@ class ProductServices {
     required Produto product,
   }) async {
     return fireStore
-        .collection('listins')
+        .collection(uid)
         .doc(listinId)
         .collection('produtos')
         .doc(product.id)
@@ -60,7 +62,7 @@ class ProductServices {
     required bool isDecrescente,
   }) async {
     return fireStore
-        .collection('listins')
+        .collection(uid)
         .doc(listinId)
         .collection('produtos')
         .orderBy(order.name, descending: isDecrescente)
@@ -104,7 +106,7 @@ class ProductServices {
     required Produto product,
   }) async {
     return fireStore
-        .collection('listins')
+        .collection(uid)
         .doc(listinId)
         .collection('produtos')
         .doc(product.id)
